@@ -2,17 +2,22 @@
 using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
+using System;
+using System.IO;
+
+// 감시 대상 폴더
+string targetRoot = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+    "Project",
+    "goProject",
+    "encryption_simulator",
+    "testdata"
+);
 
 Console.WriteLine("ETW file I/O monitor starting...");
 Console.WriteLine("Run this terminal/VS Code as Administrator.");
 Console.WriteLine("Press Ctrl+C to stop.");
 Console.WriteLine();
-
-// 감시 대상 폴더
-string targetRoot = @"C:\Users\donggwan.park\Desktop\Project\goProject\encryption_simulator\testdata"
-    .Replace('/', '\\')
-    .TrimEnd('\\')
-    .ToLowerInvariant();
 
 var sessionName = "CheckEncryption-FileIo";
 
