@@ -26,6 +26,13 @@ namespace CheckEncryption
 
             using var observer = new FileObserver(targetRoot);
 
+            // explorer 이벤트 예외 활성화
+            observer.EnableExplorerEventExclusion();
+
+            // explorer 이벤트 예외 비활성화하려면 아래처럼 사용
+            // observer.DisableExplorerEventExclusion();
+
+
             Console.CancelKeyPress += (_, e) =>
             {
                 Console.WriteLine();

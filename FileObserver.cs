@@ -9,18 +9,36 @@ namespace CheckEncryption
     {
         private readonly string _targetRoot;
         private readonly string _sessionName;
+
         private TraceEventSession? _session;
         private bool _isStopped;
+        private bool _excludeExplorerEvents;
 
         public FileObserver(string targetRoot, string sessionName = "CheckEncryption-FileIo")
         {
             _targetRoot = NormalizePath(targetRoot);
             _sessionName = sessionName;
+            _excludeExplorerEvents = false;
         }
 
         public static bool IsAdministrator()
         {
             return TraceEventSession.IsElevated() == true;
+        }
+
+        public void EnableExplorerEventExclusion()
+        {
+            _excludeExplorerEvents = true;
+        }
+
+        public void DisableExplorerEventExclusion()
+        {
+            _excludeExplorerEvents = false;
+        }
+
+        public void SetExplorerEventExclusion(bool enabled)
+        {
+            _excludeExplorerEvents = enabled;
         }
 
         public void Start()
@@ -137,6 +155,11 @@ namespace CheckEncryption
 
         private void HandleEvent(string eventType, string processName, int processId, string fileName)
         {
+            if (ShouldSkipEvent(processName))
+            {
+                return;
+            }
+
             var normalizedFilePath = NormalizePath(fileName);
 
             if (string.IsNullOrWhiteSpace(normalizedFilePath))
@@ -152,6 +175,29 @@ namespace CheckEncryption
             Console.WriteLine(
                 $"[{DateTime.Now:HH:mm:ss.fff}] {eventType,-10} | {processName}({processId}) | {normalizedFilePath}"
             );
+        }
+
+        private bool ShouldSkipEvent(string processName)
+        {
+            if (_excludeExplorerEvents && IsExplorerProcess(processName))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsExplorerProcess(string processName)
+        {
+            if (string.IsNullOrWhiteSpace(processName))
+            {
+                return false;
+            }
+
+            var normalizedProcessName = processName.Trim().ToLowerInvariant();
+
+            return normalizedProcessName == "explorer"
+                || normalizedProcessName == "explorer.exe";
         }
 
         private static string NormalizePath(string path)
@@ -185,7 +231,7 @@ namespace CheckEncryption
             }
 
             return filePath == targetRoot
-                   || filePath.StartsWith(targetRoot + "\\", StringComparison.Ordinal);
+                || filePath.StartsWith(targetRoot + "\\", StringComparison.Ordinal);
         }
     }
 }
